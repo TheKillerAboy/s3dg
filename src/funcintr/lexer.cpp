@@ -92,6 +92,8 @@ void debug_lexer_queue(LexerQueue lexer_queue) {
         {tok_eos, "EOS"},
     };
 
+    std::queue<std::unique_ptr<Token>> buffer;
+
     size_t i = 1;
     std::cout<<"Queue Size:"<<lexer_queue->size()<<'\n';
     while(!lexer_queue->empty()) {
@@ -101,6 +103,14 @@ void debug_lexer_queue(LexerQueue lexer_queue) {
         std::cout<<"\tType: "<<pretty_names[tok->type]<<'\n';
         std::cout<<"\tBuffer: "<<tok->buf<<std::endl;
         ++i;
+
+        buffer.push(std::move(tok));
+    }
+
+    while(!buffer.empty()) {
+        auto tok = std::move(buffer.front());
+        buffer.pop();
+        lexer_queue->push_back(std::move(tok));
     }
 }
 
