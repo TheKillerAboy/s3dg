@@ -1,8 +1,41 @@
 #include <s3dg/funcintr/ast.h>
 #include <s3dg/funcintr/execute.h>
+#include <iostream>
 
 namespace s3dg {
 namespace ast {
+
+inline std::string ASTExprTopLevel::debug_name() {
+    return "Top Level";
+}
+inline std::string ASTExprConstDefine::debug_name() {
+    return "Const Define";
+}
+inline std::string ASTExprFuncDefine::debug_name() {
+    return "Func Define";
+}
+inline std::string ASTExprFuncCall::debug_name() {
+    return "Func Call";
+}
+inline std::string ASTExprVar::debug_name() {
+    return "Var";
+}
+inline std::string ASTExprNumber::debug_name() {
+    return "Number";
+}
+inline std::string ASTExprBinOp::debug_name() {
+    return "BinOp";
+}
+
+void ASTExpr::debug() {
+    std::cout<<"AST Type: "<<debug_name()<<std::endl;
+}
+
+void ASTExprFuncDefine::debug() {
+    std::cout<<"AST Type: "<<debug_name()<<'\n';
+    std::cout<<"\tFunc Name: "<<get_name()<<'\n';
+    std::cout<<"\tArg Count: "<<param_count()<<std::endl;
+}
 
 void ASTExprTopLevel::add_expr(ASTExprPtr expr) {
     exprs.push(std::move(expr));
@@ -34,6 +67,12 @@ std::string ASTExprConstDefine::get_name() const {
     return name;
 }
 
+ASTExprPtr ASTExprTopLevel::pop_expr() {
+    auto rtn = std::move(exprs.front());
+    exprs.pop();
+    return rtn;
+}
+
 execute::ResultPtr ASTExprTopLevel::execute(execute::ExecuteStatePtr state) {
     while(!exprs.empty()) {
         auto ast = std::move(exprs.front());
@@ -41,12 +80,46 @@ execute::ResultPtr ASTExprTopLevel::execute(execute::ExecuteStatePtr state) {
 
         ast->execute(state);
     }
-    return std::make_unique<execute::Result>();
+    return execute::Result::empty_result();
 }
 
 execute::ResultPtr ASTExprConstDefine::execute(execute::ExecuteStatePtr state) {
     state->set_variable(name, value->execute(state));
+
+    return execute::Result::empty_result();
 }
+
+execute::ResultPtr ASTExprFuncDefine::execute_definition(execute::ExecuteStatePtr state) {
+    return definition->execute(state);
+}
+
+std::unique_ptr<ASTExprFuncDefine> ASTExprFuncDefine::move() {
+    return std::make_unique<ASTExprFuncDefine>(
+               name,
+               std::move(param_names),
+               std::move(definition)
+           );
+}
+
+execute::ResultPtr ASTExprFuncDefine::execute(execute::ExecuteStatePtr state) {
+    auto expr = move();
+    state->set_function(name, std::move(expr));
+
+    return execute::Result::empty_result();
+}
+
+execute::ResultPtr ASTExprFuncCall::execute(execute::ExecuteStatePtr state) {
+    return state->execute_function(name, arg_values);
+}
+
+execute::ResultPtr ASTExprNumber::execute(execute::ExecuteStatePtr state) {
+    return std::make_unique<execute::Result>(std::stof(value));
+}
+
+execute::ResultPtr ASTExprVar::execute(execute::ExecuteStatePtr state) {
+    return std::make_unique<execute::Result>(state->get_variable(name)->clone());
+}
+
 
 }
 }

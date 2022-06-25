@@ -175,9 +175,14 @@ ast::ASTExprPtr parse_define(lexer::LexerQueue lexer_queue) {
     // check (
 
     std::vector<std::string> param_names;
+    int i = 0;
     while(true) {
         tok = std::move(lexer_queue->front());
         lexer_queue->pop_front();
+
+        if(tok->buf == ")" && i == 0) {
+            break;
+        }
 
         param_names.push_back(tok->buf);
 
@@ -187,6 +192,7 @@ ast::ASTExprPtr parse_define(lexer::LexerQueue lexer_queue) {
         if(tok->buf == ")") {
             break;
         }
+        ++i;
     }
 
     lexer_queue->pop_front(); // pops =

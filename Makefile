@@ -16,7 +16,7 @@ BIN = bin
 
 .PHONY: all clean lib
 
-all: dirs exlibs main tests_compile
+all: dirs exlibs main
 
 exlibs:
 	cd lib/glfw && cmake . && make
