@@ -26,7 +26,7 @@ std::unique_ptr<Token> get_tok(std::stringstream& ss) {
     std::stringstream stream_tok_buf;
     char tok_buf = get_nonblank(ss);
 
-    if(tok_buf == EOF || tok_buf == 0 || tok_buf == '\n') {
+    if(!ss || tok_buf == '\n') {
         tok->type = tok_eos;
         return tok;
     }
