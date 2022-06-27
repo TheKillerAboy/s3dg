@@ -25,7 +25,8 @@ make run
 
 ## TODO
 - Add proper Exception handling
-- Add proper Logging
+- Add way to enable debug logging level from make file
+- Make test runner run all tests in one session, and add custom main for testrunner
 - Add proper parser exception messages
 - Implement `ASTExprBinOps::execute`, to be able to do arthemtics
 - `graph3d` method
