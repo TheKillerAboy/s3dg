@@ -47,12 +47,14 @@ TEST_SRC  = $(wildcard tests/*.cpp) $(wildcard tests/**/*.cpp)
 TEST_OBJ  = $(TEST_SRC:.cpp=.o)
 
 tests/%.o: tests/%.cpp lib
-	$(CC) -o $@ $< $(CATCH2_BINARIES) $(CFLAGS) $(LIB)
+	$(CC) -o $@ -c $< $(CFLAGS)
 
-test: all $(TEST_OBJ)
-	for file in $^ ; do \
-		$${file}; \
-	done
+test_main: $(TEST_OBJ)
+	$(CC) -o $(BIN)/test_execute_point $^ $(LDFLAGS) $(CATCH2_BINARIES) $(LIB)
+
+test: export SPDLOG_LEVEL = debug
+test: all test_main
+	$(BIN)/test_execute_point
 
 clean.s3dg:
 	@echo Cleaning Binaries ...
