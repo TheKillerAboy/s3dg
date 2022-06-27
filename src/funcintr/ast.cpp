@@ -5,26 +5,26 @@
 namespace s3dg {
 namespace ast {
 
-inline std::string ASTExprTopLevel::debug_name() {
+std::string ASTExprTopLevel::debug_name() {
     return "Top Level";
 }
-inline std::string ASTExprConstDefine::debug_name() {
+std::string ASTExprConstDefine::debug_name() {
     return "Const Define";
 }
-inline std::string ASTExprFuncDefine::debug_name() {
+std::string ASTExprFuncDefine::debug_name() {
     return "Func Define";
 }
-inline std::string ASTExprFuncCall::debug_name() {
+std::string ASTExprFuncCall::debug_name() {
     return "Func Call";
 }
-inline std::string ASTExprVar::debug_name() {
+std::string ASTExprVar::debug_name() {
     return "Var";
 }
-inline std::string ASTExprNumber::debug_name() {
-    return "Number";
-}
-inline std::string ASTExprBinOp::debug_name() {
+std::string ASTExprBinOp::debug_name() {
     return "BinOp";
+}
+std::string ASTExprNumber::debug_name() {
+    return "Number";
 }
 
 void ASTExpr::debug() {

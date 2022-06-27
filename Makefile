@@ -53,7 +53,12 @@ test: all $(TEST_OBJ)
 		$${file}; \
 	done
 
-clean:
+clean.s3dg:
+	@echo Cleaning Binaries ...
+	@rm -rf $(BIN) $(OBJ) $(TEST_OBJ) $(LIB) $(SRC:=.orig)
+	@rm -rf build
+
+clean: clean.s3dg
 	@echo Cleaning Binaries ...
 	@rm -rf $(BIN) $(OBJ) $(TEST_OBJ) $(LIB) $(SRC:=.orig)
 	@rm -rf build
