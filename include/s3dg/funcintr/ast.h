@@ -13,9 +13,9 @@ private:
     template<class T>
     static bool is_ast_type(ASTExpr*);
 
-    virtual inline std::string debug_name() {}
 public:
-    virtual execute::ResultPtr execute(execute::ExecuteStatePtr state){};
+    virtual std::string debug_name() = 0;
+    virtual execute::ResultPtr execute(execute::ExecuteStatePtr state) = 0;
     void debug();
 };
 
@@ -24,7 +24,7 @@ typedef std::unique_ptr<ASTExpr> ASTExprPtr;
 class ASTExprTopLevel: public ASTExpr{
     std::queue<ASTExprPtr> exprs;
 private:
-    inline std::string debug_name();
+    std::string debug_name();
 public:
     ASTExprTopLevel(){}
     void add_expr(ASTExprPtr expr);
@@ -38,9 +38,9 @@ class ASTExprConstDefine: public ASTExpr{
     ASTExprPtr value;
 
 private:
-    inline std::string debug_name();
+    std::string debug_name();
 public:
-    ASTExprConstDefine(std::string name, ASTExprPtr value): name(name), value(std::move(value)) {}
+    ASTExprConstDefine(const std::string& name, ASTExprPtr value): name(name), value(std::move(value)) {}
     std::string get_name() const;
     execute::ResultPtr execute(execute::ExecuteStatePtr state);
 };
@@ -50,11 +50,11 @@ class ASTExprFuncDefine: public ASTExpr{
     ASTExprPtr definition;
 
 private:
-    inline std::string debug_name();
+    std::string debug_name();
 public:
     std::vector<std::string> param_names;
 
-    ASTExprFuncDefine(std::string name, std::vector<std::string> param_names, ASTExprPtr definition): name(name), param_names(std::move(param_names)), definition(std::move(definition)) {}
+    ASTExprFuncDefine(const std::string& name, std::vector<std::string> param_names, ASTExprPtr definition): name(name), param_names(std::move(param_names)), definition(std::move(definition)) {}
     size_t param_count() const;
     std::string get_name() const;
 
@@ -70,9 +70,9 @@ class ASTExprFuncCall: public ASTExpr{
     std::string name;
     std::vector<ASTExprPtr> arg_values;
 private:
-    inline std::string debug_name();
+    std::string debug_name();
 public:
-    ASTExprFuncCall(std::string name, std::vector<ASTExprPtr> arg_values): name(name), arg_values(std::move(arg_values)){}
+    ASTExprFuncCall(const std::string& name, std::vector<ASTExprPtr> arg_values): name(name), arg_values(std::move(arg_values)){}
     size_t arg_count() const;
     std::string get_name() const;
 
@@ -84,9 +84,9 @@ public:
 class ASTExprVar: public ASTExpr{
     std::string name;
 private:
-    inline std::string debug_name();
+    std::string debug_name();
 public:
-    ASTExprVar(std::string name): name(name){}
+    ASTExprVar(const std::string& name): name(name){}
     std::string get_name() const;
 
     execute::ResultPtr execute(execute::ExecuteStatePtr state);
@@ -95,7 +95,7 @@ public:
 class ASTExprNumber: public ASTExpr{
     std::string value;
 private:
-    inline std::string debug_name();
+    std::string debug_name();
 public:
     ASTExprNumber(std::string value): value(value){}
     std::string get_value() const;
@@ -107,9 +107,11 @@ class ASTExprBinOp: public ASTExpr{
     ASTExprPtr LHS, RHS;
     std::string op;
 private:
-    inline std::string debug_name();
+    std::string debug_name();
 public:
-    ASTExprBinOp(std::string op, ASTExprPtr LHS, ASTExprPtr RHS): op(op), LHS(std::move(LHS)), RHS(std::move(RHS)) {}
+    ASTExprBinOp(const std::string& op, ASTExprPtr LHS, ASTExprPtr RHS): op(op), LHS(std::move(LHS)), RHS(std::move(RHS)) {}
+
+    execute::ResultPtr execute(execute::ExecuteStatePtr state){}
 };
 
 }
