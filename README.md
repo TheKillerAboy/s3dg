@@ -22,3 +22,10 @@ make
 ```
 make run
 ```
+
+## TODO
+- Add proper Exception handling
+- Add proper Logging
+- Add proper parser exception messages
+- Implement `ASTExprBinOps::execute`, to be able to do arthemtics
+- `graph3d` method
