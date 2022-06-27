@@ -2,11 +2,11 @@ CC = g++
 CFLAGS = -std=c++14 -O3 -g -Wall -Wextra -Wpedantic -Wstrict-aliasing
 CFLAGS += -Wno-pointer-arith -Wno-newline-eof -Wno-unused-parameter -Wno-gnu-statement-expression
 CFLAGS += -Wno-gnu-compound-literal-initializer -Wno-gnu-zero-variadic-macro-arguments
-CFLAGS += -Ilib/glfw/include -Ilib/glew/include
+CFLAGS += -Ilib/glfw/include -Ilib/glew/include -Ilib/spdlog/include
 CFLAGS += -Iinclude
 
 LDFLAGS = -ldl -lpthread -lGL 
-LDFLAGS += lib/glfw/src/libglfw3.a lib/glew/lib/libGLEW.a
+LDFLAGS += lib/glfw/src/libglfw3.a lib/glew/lib/libGLEW.a lib/spdlog/libspdlog.a
 
 SRC  = $(wildcard src/*.cpp) $(wildcard src/**/*.cpp)
 OBJ  = $(SRC:.cpp=.o)
@@ -21,6 +21,7 @@ all: dirs exlibs main
 exlibs:
 	cd lib/glfw && cmake . && make
 	cd lib/glew && make
+	cd lib/spdlog && cmake . && make
 
 dirs:
 	mkdir -p ./$(BIN)
@@ -65,3 +66,4 @@ clean: clean.s3dg
 	@echo Cleaning Libraries ...
 	@cd lib/glfw && make clean
 	@cd lib/glew && make clean
+	@cd lib/spdlog && make clean

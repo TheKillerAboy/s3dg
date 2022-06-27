@@ -4,6 +4,6 @@
 [submodule "lib/glew"]
 	path = lib/glew
 	url = git@github.com:nigels-com/glew.git
-[submodule "lib/astyle"]
-	path = lib/astyle
-	url = git@github.com:steinwurf/astyle.git
+[submodule "lib/spdlog"]
+	path = lib/spdlog
+	url = git@github.com:gabime/spdlog.git
