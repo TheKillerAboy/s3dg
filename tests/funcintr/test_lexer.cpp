@@ -21,8 +21,6 @@ TEST_CASE( "get_nonblank", "[lexer]" ) {
         char c;
 
         REQUIRE(get_nonblank(ss) == 'd');
-        ss.get(c);
-        REQUIRE((c == 0 || c == EOF));
     }
 }
 
