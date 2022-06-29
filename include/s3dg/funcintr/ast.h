@@ -111,7 +111,7 @@ public:
     std::string op;
     ASTExprBinOp(const std::string& op, ASTExprPtr LHS, ASTExprPtr RHS): op(op), LHS(std::move(LHS)), RHS(std::move(RHS)) {}
 
-    execute::ResultPtr execute(execute::ExecuteStatePtr state){}
+    execute::ResultPtr execute(execute::ExecuteStatePtr state);
 };
 
 }

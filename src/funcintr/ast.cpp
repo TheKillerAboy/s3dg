@@ -1,5 +1,6 @@
 #include <s3dg/funcintr/ast.h>
 #include <s3dg/funcintr/execute.h>
+#include <s3dg/funcintr/binop.h>
 #include <spdlog/spdlog.h>
 #include <iostream>
 
@@ -121,6 +122,16 @@ execute::ResultPtr ASTExprVar::execute(execute::ExecuteStatePtr state) {
     return std::make_unique<execute::Result>(state->get_variable(name)->clone());
 }
 
+execute::ResultPtr ASTExprBinOp::execute(execute::ExecuteStatePtr state) {
+    LHS->debug();
+    RHS->debug();
+    state->debug();
+
+    auto LHSR = std::move(LHS->execute(std::move(state)));
+    auto RHSR = std::move(RHS->execute(std::move(state)));
+
+    return binops::BinOpsSingleton::execute_result_ptr_func(op, std::move(LHSR), std::move(RHSR));
+}
 
 }
 }
