@@ -1,49 +1,12 @@
 #include <s3dg/funcintr/ast.h>
 #include <s3dg/funcintr/parser.h>
 #include <s3dg/funcintr/lexer.h>
+#include <s3dg/funcintr/binop.h>
 #include <memory>
 #include <vector>
 
 namespace s3dg {
 namespace parser {
-
-void init_BinOpMetas() {
-    BinOpMetas.insert({
-        "+",
-        std::make_shared<BinOpMeta>(
-            20,
-            "0"
-        )
-    });
-    BinOpMetas.insert({
-        "-",
-        std::make_shared<BinOpMeta>(
-            20,
-            "0"
-        )
-    });
-    BinOpMetas.insert({
-        "*",
-        std::make_shared<BinOpMeta>(
-            50,
-            "1"
-        )
-    });
-    BinOpMetas.insert({
-        "/",
-        std::make_shared<BinOpMeta>(
-            50,
-            "0"
-        )
-    });
-    BinOpMetas.insert({
-        "^",
-        std::make_shared<BinOpMeta>(
-            70,
-            "1"
-        )
-    });
-}
 
 void eat_eos(lexer::LexerQueue lexer_queue) {
     auto tok = std::move(lexer_queue->front());
@@ -110,13 +73,12 @@ ast::ASTExprPtr parse_primary(lexer::LexerQueue lexer_queue) {
     }
 }
 
-std::pair<std::string, std::shared_ptr<BinOpMeta>> try_get_op(lexer::LexerQueue lexer_queue) {
+std::pair<std::string, binops::BinOpMetaPtr> try_get_op(lexer::LexerQueue lexer_queue) {
     auto tok = std::move(lexer_queue->front());
     lexer_queue->pop_front();
     if(tok->type == lexer::tok_any) {
-        auto meta = BinOpMetas.find(tok->buf);
-        if(meta != BinOpMetas.end()) {
-            return std::make_pair(meta->first,std::move(meta->second));
+        if(binops::BinOpsSingleton::has_meta(tok->buf)) {
+            return std::make_pair(tok->buf,std::move(binops::BinOpsSingleton::get_meta(tok->buf)));
         }
     }
     lexer_queue->push_front(std::move(tok));
@@ -129,7 +91,7 @@ ast::ASTExprPtr parse_expression(lexer::LexerQueue lexer_queue) {
     auto binopmeta = try_get_op(lexer_queue);
     if(binopmeta.second) {
         op = binopmeta.first;
-        LHS = std::make_unique<ast::ASTExprNumber>(binopmeta.second->leading_value);
+        LHS = std::make_unique<ast::ASTExprNumber>(binopmeta.second->unary_pre);
     }
     else {
         LHS = parse_primary(lexer_queue);

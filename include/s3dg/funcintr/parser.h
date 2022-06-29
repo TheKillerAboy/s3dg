@@ -1,27 +1,16 @@
 #pragma once
 #include <s3dg/funcintr/lexer.h>
 #include <s3dg/funcintr/ast.h>
+#include <s3dg/funcintr/binop.h>
 #include <queue>
 #include <map>
 
 namespace s3dg{
 namespace parser{
 
-class BinOpMeta{
-public:
-    unsigned int Precedence;
-    std::string leading_value;
-
-    BinOpMeta(unsigned int Precedence, std::string leading_value): Precedence(Precedence), leading_value(leading_value){}
-};
-
-static std::map<std::string, std::shared_ptr<BinOpMeta>> BinOpMetas;
-
-void init_BinOpMetas();
-
 void eat_eos(lexer::LexerQueue lexer_queue);
 
-std::pair<std::string, std::shared_ptr<BinOpMeta>>  try_get_op(lexer::LexerQueue lexer_queue);
+std::pair<std::string, binops::BinOpMetaPtr>  try_get_op(lexer::LexerQueue lexer_queue);
 
 std::unique_ptr<ast::ASTExpr> parse_primary(lexer::LexerQueue lexer_queue);
 std::unique_ptr<ast::ASTExpr> parse_expression(lexer::LexerQueue lexer_queue);
