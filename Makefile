@@ -49,22 +49,28 @@ format:
 
 # Testing
 
-USR_LCL = /usr/local
-USR_LIB = $(USR_LCL)/lib
-USR_INC = $(USR_LCL)/include
-CATCH2_BINARIES = $(USR_LIB)/libCatch2Main.a $(USR_LIB)/libCatch2.a
+CATCH2_SRC = lib/Catch2
+CATCH2_BUILD_SRC = $(CATCH2_SRC)/build/src
+CATCH2_LIB = $(CATCH2_BUILD_SRC)/libCatch2Main.a $(CATCH2_BUILD_SRC)/libCatch2.a
+CATCH2_INC = -I$(CATCH2_SRC)/src -I$(CATCH2_SRC)/build/generated-includes
+
+catch2_lib:
+	cd lib/Catch2 &&\
+	cmake -DCMAKE_CXX_COMPILER=g++ -Bbuild &&\
+	cd build &&\
+	make
 
 TEST_SRC  = $(wildcard tests/*.cpp) $(wildcard tests/**/*.cpp)
 TEST_OBJ  = $(TEST_SRC:.cpp=.o)
 
 tests/%.o: tests/%.cpp
-	$(CC) -o $@ -c $< $(CFLAGS) -I$(USR_INC)
+	$(CC) -o $@ -c $< $(CFLAGS) $(CATCH2_INC)
 
 test_main: $(TEST_OBJ)
-	$(CC) -o $(BIN)/test_execute_point $^ $(LDFLAGS) $(LIB) $(CATCH2_BINARIES)
+	$(CC) -o $(BIN)/test_execute_point $^ $(LDFLAGS) $(LIB) $(CATCH2_LIB)
 
 test: export SPDLOG_LEVEL = debug
-test: all test_main
+test: all catch2_lib test_main
 	$(BIN)/test_execute_point
 
 clean.s3dg:
@@ -77,3 +83,4 @@ clean: clean.s3dg
 	@cd lib/glfw && make clean
 	@cd lib/glew && make clean
 	@cd lib/spdlog && make clean
+	@cd lib/Catch2/build && make clean
