@@ -1,5 +1,6 @@
 #include <s3dg/funcintr/ast.h>
 #include <s3dg/funcintr/execute.h>
+#include <spdlog/spdlog.h>
 #include <iostream>
 
 namespace s3dg {
@@ -28,13 +29,13 @@ std::string ASTExprNumber::debug_name() {
 }
 
 void ASTExpr::debug() {
-    std::cout<<"AST Type: "<<debug_name()<<std::endl;
+    spdlog::debug("AST Type: {}", debug_name());
 }
 
 void ASTExprFuncDefine::debug() {
-    std::cout<<"AST Type: "<<debug_name()<<'\n';
-    std::cout<<"\tFunc Name: "<<get_name()<<'\n';
-    std::cout<<"\tArg Count: "<<param_count()<<std::endl;
+    spdlog::debug("AST Type: {}", debug_name());
+    spdlog::debug("\tFunc Name: {}", get_name());
+    spdlog::debug("\tArg Count {}", param_count());
 }
 
 void ASTExprTopLevel::add_expr(ASTExprPtr expr) {

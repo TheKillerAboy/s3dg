@@ -35,11 +35,11 @@ public:
 
 class ASTExprConstDefine: public ASTExpr{
     std::string name;
-    ASTExprPtr value;
 
 private:
     std::string debug_name();
 public:
+    ASTExprPtr value;
     ASTExprConstDefine(const std::string& name, ASTExprPtr value): name(name), value(std::move(value)) {}
     std::string get_name() const;
     execute::ResultPtr execute(execute::ExecuteStatePtr state);
@@ -104,11 +104,11 @@ public:
 };
 
 class ASTExprBinOp: public ASTExpr{
-    ASTExprPtr LHS, RHS;
-    std::string op;
 private:
     std::string debug_name();
 public:
+    ASTExprPtr LHS, RHS;
+    std::string op;
     ASTExprBinOp(const std::string& op, ASTExprPtr LHS, ASTExprPtr RHS): op(op), LHS(std::move(LHS)), RHS(std::move(RHS)) {}
 
     execute::ResultPtr execute(execute::ExecuteStatePtr state){}

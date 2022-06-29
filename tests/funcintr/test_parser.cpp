@@ -121,3 +121,112 @@ TEST_CASE( "parse_top_level", "[parser]" ) {
         REQUIRE(ast_print_fc->arg_count() == 1);
     }
 }
+
+TEST_CASE( "parse_expression", "[parser]" ) {
+    SECTION("simple series"){
+        std::stringstream ss(std::string("1+2+3"));
+        auto lexer_queue = s3dg::lexer::lexer(ss);
+        auto ast = parse_expression(lexer_queue);
+
+        auto* ast_binop = static_cast<s3dg::ast::ASTExprBinOp*>(ast.get());
+        auto* v_1 = static_cast<s3dg::ast::ASTExprNumber*>(ast_binop->LHS.get());
+        REQUIRE(v_1->get_value() == "1");
+        auto* v_23 = static_cast<s3dg::ast::ASTExprBinOp*>(ast_binop->RHS.get());
+        auto* v_2 = static_cast<s3dg::ast::ASTExprNumber*>(v_23->LHS.get());
+        REQUIRE(v_2->get_value() == "2");
+        auto* v_3 = static_cast<s3dg::ast::ASTExprNumber*>(v_23->RHS.get());
+        REQUIRE(v_3->get_value() == "3");
+    }
+    SECTION("simple series in brackets"){
+        std::stringstream ss(std::string("(1+2+3)"));
+        auto lexer_queue = s3dg::lexer::lexer(ss);
+        auto ast = parse_expression(lexer_queue);
+
+        auto* ast_binop = static_cast<s3dg::ast::ASTExprBinOp*>(ast.get());
+        auto* v_1 = static_cast<s3dg::ast::ASTExprNumber*>(ast_binop->LHS.get());
+        REQUIRE(v_1->get_value() == "1");
+        auto* v_23 = static_cast<s3dg::ast::ASTExprBinOp*>(ast_binop->RHS.get());
+        auto* v_2 = static_cast<s3dg::ast::ASTExprNumber*>(v_23->LHS.get());
+        REQUIRE(v_2->get_value() == "2");
+        auto* v_3 = static_cast<s3dg::ast::ASTExprNumber*>(v_23->RHS.get());
+        REQUIRE(v_3->get_value() == "3");
+    }
+    SECTION("no bracket mul"){
+        std::stringstream ss(std::string("1+2*3"));
+        auto lexer_queue = s3dg::lexer::lexer(ss);
+        auto ast = parse_expression(lexer_queue);
+
+        auto* ast_binop = static_cast<s3dg::ast::ASTExprBinOp*>(ast.get());
+        auto* v_1 = static_cast<s3dg::ast::ASTExprNumber*>(ast_binop->LHS.get());
+        REQUIRE(v_1->get_value() == "1");
+        auto* v_23 = static_cast<s3dg::ast::ASTExprBinOp*>(ast_binop->RHS.get());
+        REQUIRE(v_23->op == "*");
+        auto* v_2 = static_cast<s3dg::ast::ASTExprNumber*>(v_23->LHS.get());
+        REQUIRE(v_2->get_value() == "2");
+        auto* v_3 = static_cast<s3dg::ast::ASTExprNumber*>(v_23->RHS.get());
+        REQUIRE(v_3->get_value() == "3");
+    }
+    SECTION("with bracket mul"){
+        std::stringstream ss(std::string("(1+2)*3"));
+        auto lexer_queue = s3dg::lexer::lexer(ss);
+        auto ast = parse_expression(lexer_queue);
+
+        auto* ast_binop = static_cast<s3dg::ast::ASTExprBinOp*>(ast.get());
+        REQUIRE(ast_binop->op == "*");
+        auto* v_12 = static_cast<s3dg::ast::ASTExprBinOp*>(ast_binop->LHS.get());
+        auto* v_3 = static_cast<s3dg::ast::ASTExprNumber*>(ast_binop->RHS.get());
+        REQUIRE(v_3->get_value() == "3");
+        auto* v_1 = static_cast<s3dg::ast::ASTExprNumber*>(v_12->LHS.get());
+        REQUIRE(v_1->get_value() == "1");
+        auto* v_2 = static_cast<s3dg::ast::ASTExprNumber*>(v_12->RHS.get());
+        REQUIRE(v_2->get_value() == "2");
+    }
+    SECTION("bracket with bracketed unary"){
+        std::stringstream ss(std::string("(-1)*(2+3)"));
+        auto lexer_queue = s3dg::lexer::lexer(ss);
+        auto ast = parse_expression(lexer_queue);
+
+        auto* ast_binop = static_cast<s3dg::ast::ASTExprBinOp*>(ast.get());
+        REQUIRE(ast_binop->op == "*");
+
+        auto* v_0n1 = static_cast<s3dg::ast::ASTExprBinOp*>(ast_binop->LHS.get());
+        REQUIRE(v_0n1->op == "-");
+
+        auto* v_23 = static_cast<s3dg::ast::ASTExprBinOp*>(ast_binop->RHS.get());
+        REQUIRE(v_23->op == "+");
+
+        auto* v_0 = static_cast<s3dg::ast::ASTExprNumber*>(v_0n1->LHS.get());
+        REQUIRE(v_0->get_value() == "0");
+        auto* v_n1 = static_cast<s3dg::ast::ASTExprNumber*>(v_0n1->RHS.get());
+        REQUIRE(v_n1->get_value() == "1");
+
+        auto* v_2 = static_cast<s3dg::ast::ASTExprNumber*>(v_23->LHS.get());
+        REQUIRE(v_2->get_value() == "2");
+        auto* v_3 = static_cast<s3dg::ast::ASTExprNumber*>(v_23->RHS.get());
+        REQUIRE(v_3->get_value() == "3");
+    }
+    SECTION("bracket with unary"){
+        std::stringstream ss(std::string("-1*(2+3)")); // should be same as `bracket with bracketed unary`
+        auto lexer_queue = s3dg::lexer::lexer(ss);
+        auto ast = parse_expression(lexer_queue);
+
+        auto* ast_binop = static_cast<s3dg::ast::ASTExprBinOp*>(ast.get());
+        REQUIRE(ast_binop->op == "*");
+
+        auto* v_0n1 = static_cast<s3dg::ast::ASTExprBinOp*>(ast_binop->LHS.get());
+        REQUIRE(v_0n1->op == "-");
+
+        auto* v_23 = static_cast<s3dg::ast::ASTExprBinOp*>(ast_binop->RHS.get());
+        REQUIRE(v_23->op == "+");
+
+        auto* v_0 = static_cast<s3dg::ast::ASTExprNumber*>(v_0n1->LHS.get());
+        REQUIRE(v_0->get_value() == "0");
+        auto* v_n1 = static_cast<s3dg::ast::ASTExprNumber*>(v_0n1->RHS.get());
+        REQUIRE(v_n1->get_value() == "1");
+
+        auto* v_2 = static_cast<s3dg::ast::ASTExprNumber*>(v_23->LHS.get());
+        REQUIRE(v_2->get_value() == "2");
+        auto* v_3 = static_cast<s3dg::ast::ASTExprNumber*>(v_23->RHS.get());
+        REQUIRE(v_3->get_value() == "3");
+    }
+}

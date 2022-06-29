@@ -61,11 +61,11 @@ TEST_CASE("get_tok", "[lexer]"){
         REQUIRE(tok->type == TokenType::tok_any);
         REQUIRE(tok->buf == "-");
         tok = get_tok(ss);
-        REQUIRE(tok->type == TokenType::tok_any);
-        REQUIRE(tok->buf == ")");
+        REQUIRE(tok->type == TokenType::tok_cbrac);
+        REQUIRE(tok->buf == "");
         tok = get_tok(ss);
-        REQUIRE(tok->type == TokenType::tok_any);
-        REQUIRE(tok->buf == "(");
+        REQUIRE(tok->type == TokenType::tok_obrac);
+        REQUIRE(tok->buf == "");
     }
 }
 

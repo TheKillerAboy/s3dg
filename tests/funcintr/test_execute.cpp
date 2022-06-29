@@ -17,6 +17,7 @@ TEST_CASE( "execute_function print", "[execute]" ) {
         std::stringstream ss(std::string("define f() = 5\nprint f()"));
         auto lexer_queue = s3dg::lexer::lexer(ss);
         auto ast = s3dg::parser::parse_top_level(lexer_queue);
+        s3dg::lexer::debug_lexer_queue(lexer_queue);
         auto state = std::make_shared<ExecuteState>();
         ast->execute(state);
 
