@@ -76,11 +76,11 @@ std::string BinOpsSingleton::get_unary_pre(const std::string& binop) {
     return BinOpsSingleton::get_meta(binop)->unary_pre;
 }
 
-execute::ResultPtr BinOpsSingleton::Iexecute_result_ptr_func(const std::string& op, execute::ResultPtr left, execute::ResultPtr right) {
+execute::ResultPtr BinOpsSingleton::Iexecute_result_ptr_func(const std::string& op, execute::ResultPtr left, execute::ResultPtr right){
     return result_ptr_funcs[op](std::move(left), std::move(right));
 }
 
-execute::ResultPtr BinOpsSingleton::execute_result_ptr_func(const std::string& op, execute::ResultPtr left, execute::ResultPtr right) {
+execute::ResultPtr BinOpsSingleton::execute_result_ptr_func(const std::string& op, execute::ResultPtr left, execute::ResultPtr right){
     return BinOpsSingleton::get().Iexecute_result_ptr_func(op, std::move(left), std::move(right));
 }
 

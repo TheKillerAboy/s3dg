@@ -61,6 +61,18 @@ TEST_CASE( "execute_function print", "[execute]" ) {
         REQUIRE(out == "4, 6\n");
     }
 
+    SECTION("eval simple"){
+        std::stringstream ss(std::string("define f(x) = x\neval f"));
+        auto lexer_queue = s3dg::lexer::lexer(ss);
+        auto ast = s3dg::parser::parse_top_level(lexer_queue);
+        auto state = std::make_shared<ExecuteState>();
+        ast->execute(state);
+
+        auto out = strCout.str();
+        strCout.flush();
+        REQUIRE(out == "f: -1, -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1\n");
+    }
+
     // restore cout
     std::cout.rdbuf( oldCoutStreamBuf );
 }

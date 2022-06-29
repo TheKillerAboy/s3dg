@@ -4,7 +4,6 @@
 #include <cassert>
 #include <cmath>
 #include <spdlog/spdlog.h>
-#include <s3dg/utils/math.h>
 
 namespace s3dg
 {
@@ -140,7 +139,7 @@ bool LangFunctions::has_function(const std::string &name) const
     return funcs.find(name) != funcs.end();
 }
 
-ResultPtr LangFunctions::Iprint(const std::vector<ResultPtr>& values) {
+ResultPtr LangFunctions::Iprint(const std::vector<ResultPtr>& values){
     size_t size = values.size();
     for (size_t i = 0; i < size - 1; ++i)
     {
@@ -163,14 +162,14 @@ ResultPtr LangFunctions::print(ExecuteStatePtr state, std::vector<ast::ASTExprPt
     return LangFunctions::Iprint(values);
 }
 
-void LangFunctions::Ieval1D(ExecuteStatePtr state, const std::string& func_name) {
+void LangFunctions::Ieval1D(ExecuteStatePtr state, const std::string& func_name){
     float xmin = state->get_variable("__xmin")->ret;
     float xmax = state->get_variable("__xmax")->ret;
     float xinc = state->get_variable("__xinc")->ret;
-
+    
     std::cout<<func_name<<": ";
 
-    for(float i = xmin; !cmpf(i,xmax+xinc); i+=xinc) {
+    for(float i = xmin; i <= xmax; i+=xinc){
         std::vector<ast::ASTExprPtr> arg_values;
         arg_values.push_back(
             std::make_unique<ast::ASTExprNumber>(
@@ -178,29 +177,29 @@ void LangFunctions::Ieval1D(ExecuteStatePtr state, const std::string& func_name)
             )
         );
         auto out = state->execute_function(func_name, arg_values);
-        std::cout<<out->ret;
-        if(!cmpf(i,xmax)) std::cout<<", ";
+        std::cout<<out->ret<<", ";
     }
     std::cout<<std::endl;
 }
 
-ResultPtr LangFunctions::eval(ExecuteStatePtr state, std::vector<ast::ASTExprPtr> &arg_values) {
-    for(auto it = arg_values.begin(); it != arg_values.end(); ++it) {
+ResultPtr LangFunctions::eval(ExecuteStatePtr state, std::vector<ast::ASTExprPtr> &arg_values){
+    spdlog::debug("eval");
+    for(auto it = arg_values.begin(); it != arg_values.end(); ++it){
         auto expr = std::move(*it);
         auto* var_expr = dynamic_cast<ast::ASTExprVar*>(expr.get());
         std::string func_name = var_expr->get_name();
 
-        switch(state->get_function_param_count(func_name)) {
-        case 1:
-            LangFunctions::Ieval1D(state, func_name);
-            break;
+        switch(state->get_function_param_count(func_name)){
+            case 1:
+                LangFunctions::Ieval1D(state, func_name);
+                break;
         }
     }
 
     return Result::init();
 }
 
-size_t ExecuteState::get_function_param_count(const std::string & func_name) {
+size_t ExecuteState::get_function_param_count(const std::string & func_name){
     return FunctionLookup[func_name]->param_count();
 }
 
