@@ -8,7 +8,7 @@ make format
 
 ## Testing
 
-Requires `Catch2` to be installed
+Requires `Catch2` to be installed, make sure to use a g++ compiled lib
 ```
 make test
 ```
