@@ -2,6 +2,7 @@
 #include <s3dg/funcintr/parser.h>
 #include <s3dg/funcintr/lexer.h>
 #include <s3dg/funcintr/binop.h>
+#include <spdlog/spdlog.h>
 #include <memory>
 #include <vector>
 
@@ -9,11 +10,10 @@ namespace s3dg {
 namespace parser {
 
 void eat_eos(lexer::LexerQueue lexer_queue) {
-    auto tok = std::move(lexer_queue->front());
-    lexer_queue->pop_front();
-
-    if(tok->type != lexer::tok_eos) {
-        // TODO: error handling
+    // spdlog::debug("Eat EOS");
+    // lexer::debug_lexer_queue(lexer_queue);
+    if(lexer::is_next_tok(lexer_queue, lexer::tok_eos)) {
+        lexer_queue->pop_front();
     }
 }
 
@@ -27,14 +27,14 @@ ast::ASTExprPtr parse_func_call(
     std::vector<ast::ASTExprPtr> arg_values;
     tok = std::move(lexer_queue->front());
     lexer_queue->pop_front(); // pop (
-    if(tok->buf != ")") {
+    if(tok->type != lexer::tok_cbrac) {
         lexer_queue->push_front(std::move(tok));
         while(true) {
             arg_values.push_back(std::move(parse_expression(lexer_queue)));
             tok = std::move(lexer_queue->front());
             lexer_queue->pop_front();
 
-            if(tok->buf == ")") {
+            if(tok->type == lexer::tok_cbrac) {
                 break;
             }
         }
@@ -50,6 +50,9 @@ ast::ASTExprPtr parse_func_call(
 
 ast::ASTExprPtr parse_primary(lexer::LexerQueue lexer_queue) {
     //parse single expressions without seps
+
+    // spdlog::debug("Parse Primary:");
+    // lexer::debug_lexer_queue(lexer_queue);
     auto tok = std::move(lexer_queue->front());
     lexer_queue->pop_front();
 
@@ -58,7 +61,7 @@ ast::ASTExprPtr parse_primary(lexer::LexerQueue lexer_queue) {
         auto name = tok->buf;
         tok = std::move(lexer_queue->front());
         lexer_queue->pop_front();
-        if(tok->type == lexer::tok_any && tok->buf=="(") {
+        if(tok->type==lexer::tok_obrac) {
             lexer_queue->push_front(std::move(tok));
             return parse_func_call(
                        name,
@@ -85,33 +88,66 @@ std::pair<std::string, binops::BinOpMetaPtr> try_get_op(lexer::LexerQueue lexer_
     return std::make_pair("", nullptr);
 }
 
-ast::ASTExprPtr parse_expression(lexer::LexerQueue lexer_queue) {
-    ast::ASTExprPtr LHS;
-    std::string op;
-    auto binopmeta = try_get_op(lexer_queue);
-    if(binopmeta.second) {
-        op = binopmeta.first;
-        LHS = std::make_unique<ast::ASTExprNumber>(binopmeta.second->unary_pre);
+ast::ASTExprPtr parse_unary(lexer::LexerQueue lexer_queue) {
+    spdlog::debug("Parse Unary:");
+    lexer::debug_lexer_queue(lexer_queue);
+    auto binop = try_get_op(lexer_queue);
+    if(binop.second) {
+        return std::make_unique<ast::ASTExprBinOp>(
+                   binop.first,
+                   std::make_unique<ast::ASTExprNumber>(binop.second->unary_pre),
+                   std::move(parse_expression(lexer_queue, false))
+               );
     }
-    else {
-        LHS = parse_primary(lexer_queue);
-        binopmeta = try_get_op(lexer_queue);
-        if(binopmeta.second) {
-            op = binopmeta.first;
-        }
-        else {
-            return LHS;
-        }
-    }
-    return std::make_unique<ast::ASTExprBinOp>(
-               op,
-               std::move(LHS),
-               parse_expression(lexer_queue)
-           );
+    return nullptr;
+}
 
+ast::ASTExprPtr parse_series(lexer::LexerQueue lexer_queue, ast::ASTExprPtr expr) {
+    spdlog::debug("Parse Series:");
+    lexer::debug_lexer_queue(lexer_queue);
+    // a defined expr is LHS
+    if(expr == nullptr)
+        expr = std::move(parse_expression(lexer_queue, false));
+
+    if(parse_series_normal_breakpoint(lexer_queue)) {
+        auto binop = try_get_op(lexer_queue);
+        auto n_expr = std::move(parse_expression(lexer_queue));
+        expr = std::make_unique<ast::ASTExprBinOp>(
+                   binop.first,
+                   std::move(expr),
+                   std::move(n_expr)
+               );
+    }
+    return expr;
+}
+
+bool parse_series_normal_breakpoint(lexer::LexerQueue lexer_queue) {
+    return lexer_queue->front()->type == lexer::tok_any && binops::BinOpsSingleton::has_meta(lexer_queue->front()->buf);
+}
+
+ast::ASTExprPtr parse_expression(lexer::LexerQueue lexer_queue, bool can_parse_series) {
+    spdlog::debug("Parse Expression ps:{}:", can_parse_series);
+    lexer::debug_lexer_queue(lexer_queue);
+    auto expr = std::move(parse_unary(lexer_queue));
+    if(expr) {
+        return parse_series(lexer_queue, std::move(expr));
+    }
+
+    if(lexer::is_next_tok(lexer_queue, lexer::tok_obrac)) {
+        lexer_queue->pop_front();
+        expr = std::move(parse_series(lexer_queue));
+        lexer_queue->pop_front();
+    }
+
+    if(can_parse_series)
+        return parse_series(lexer_queue, std::move(expr));
+
+    return parse_primary(lexer_queue);
 }
 
 ast::ASTExprPtr parse_define(lexer::LexerQueue lexer_queue) {
+    spdlog::debug("Define:");
+    lexer::debug_lexer_queue(lexer_queue);
     auto tok = std::move(lexer_queue->front());
     lexer_queue->pop_front();
 
@@ -142,7 +178,7 @@ ast::ASTExprPtr parse_define(lexer::LexerQueue lexer_queue) {
         tok = std::move(lexer_queue->front());
         lexer_queue->pop_front();
 
-        if(tok->buf == ")" && i == 0) {
+        if(tok->type == lexer::tok_cbrac && i == 0) {
             break;
         }
 
@@ -151,7 +187,7 @@ ast::ASTExprPtr parse_define(lexer::LexerQueue lexer_queue) {
         tok = std::move(lexer_queue->front());
         lexer_queue->pop_front();
 
-        if(tok->buf == ")") {
+        if(tok->type == lexer::tok_cbrac) {
             break;
         }
         ++i;
@@ -175,6 +211,8 @@ ast::ASTExprPtr parse_top_level_call(
     std::vector<ast::ASTExprPtr> arg_values;
     while(lexer_queue->front()->type != lexer::tok_eos) {
         arg_values.push_back(std::move(parse_expression(lexer_queue)));
+        // arg_values.back()->debug();
+        // lexer::debug_lexer_queue(lexer_queue);
     }
     eat_eos(lexer_queue);
     return std::make_unique<ast::ASTExprFuncCall>(

@@ -6,10 +6,19 @@
 #include <string>
 #include <queue>
 #include <map>
+#include <spdlog/spdlog.h>
 
 
 namespace s3dg {
 namespace lexer {
+
+bool Token::operator==(const Token& other) {
+    return type == other.type && buf == other.buf;
+}
+
+bool Token::operator==(const TokenType& other) {
+    return type == other;
+}
 
 char get_nonblank(std::stringstream& ss) {
     char buf;
@@ -60,10 +69,34 @@ std::unique_ptr<Token> get_tok(std::stringstream& ss) {
         return tok;
     }
 
+    if(tok_buf == '(') {
+        tok->type = tok_obrac;
+        return tok;
+    }
+
+    if(tok_buf == ')') {
+        tok->type = tok_cbrac;
+        return tok;
+    }
+
     tok->type = tok_any;
     tok->buf += tok_buf;
 
     return tok;
+}
+
+bool is_next_tok(LexerQueue lexer_queue, const Token& other) {
+    return is_next_tok(lexer_queue, other.buf) && is_next_tok(lexer_queue, other.type);
+}
+
+bool is_next_tok(LexerQueue lexer_queue, const TokenType& other) {
+    if(lexer_queue)
+        return lexer_queue->front()->type == other;
+    return false;
+}
+
+bool is_next_tok(LexerQueue lexer_queue, const std::string& other) {
+    return lexer_queue->front()->buf == other;
 }
 
 LexerQueue lexer(std::stringstream& ss) {
@@ -90,18 +123,20 @@ void debug_lexer_queue(LexerQueue lexer_queue) {
         {tok_define, "DEFINE"},
         {tok_number, "NUMBER"},
         {tok_eos, "EOS"},
+        {tok_obrac, "OPEN BRAC"},
+        {tok_cbrac, "CLOSE BRAC"},
     };
 
     std::queue<std::unique_ptr<Token>> buffer;
 
     size_t i = 1;
-    std::cout<<"Queue Size:"<<lexer_queue->size()<<'\n';
+    spdlog::debug("Queue Size: {}", lexer_queue->size());
     while(!lexer_queue->empty()) {
         auto tok = std::move(lexer_queue->front());
         lexer_queue->pop_front();
-        std::cout<<"Pos:"<<i<<'\n';
-        std::cout<<"\tType: "<<pretty_names[tok->type]<<'\n';
-        std::cout<<"\tBuffer: "<<tok->buf<<std::endl;
+        spdlog::debug("\tPos: {}", i);
+        spdlog::debug("\tType: {}", pretty_names[tok->type]);
+        spdlog::debug("\tBuffer: {}", tok->buf);
         ++i;
 
         buffer.push(std::move(tok));

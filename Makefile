@@ -71,7 +71,7 @@ test_main: $(TEST_OBJ)
 
 test: export SPDLOG_LEVEL = debug
 test: all catch2_lib test_main
-	$(BIN)/test_execute_point
+	$(BIN)/test_execute_point $(ARGS)
 
 clean.s3dg:
 	@echo Cleaning Binaries ...

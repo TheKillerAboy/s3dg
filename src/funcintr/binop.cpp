@@ -1,9 +1,9 @@
 #include <s3dg/funcintr/binop.h>
 
-namespace s3dg{
-namespace binops{
+namespace s3dg {
+namespace binops {
 
-BinOpsSingleton::BinOpsSingleton(){
+BinOpsSingleton::BinOpsSingleton() {
     metas.insert({
         "+",
         std::make_shared<BinOpMeta>(20,"0")
@@ -26,30 +26,30 @@ BinOpsSingleton::BinOpsSingleton(){
     });
 }
 
-BinOpMetaPtr BinOpsSingleton::Iget_meta(const std::string& binop){
+BinOpMetaPtr BinOpsSingleton::Iget_meta(const std::string& binop) {
     return metas.find(binop)->second;
 }
 
-bool BinOpsSingleton::Ihas_meta(const std::string& binop){
+bool BinOpsSingleton::Ihas_meta(const std::string& binop) {
     return metas.find(binop) != metas.end();
 }
 
-BinOpsSingleton& BinOpsSingleton::get(){
+BinOpsSingleton& BinOpsSingleton::get() {
     static BinOpsSingleton instance;
     return instance;
 }
 
-bool BinOpsSingleton::has_meta(const std::string& binop){
+bool BinOpsSingleton::has_meta(const std::string& binop) {
     return BinOpsSingleton::get().Ihas_meta(binop);
 }
 
-BinOpMetaPtr BinOpsSingleton::get_meta(const std::string& binop){
+BinOpMetaPtr BinOpsSingleton::get_meta(const std::string& binop) {
     return BinOpsSingleton::get().Iget_meta(binop);
 }
-unsigned int BinOpsSingleton::get_precedence(const std::string& binop){
+unsigned int BinOpsSingleton::get_precedence(const std::string& binop) {
     return BinOpsSingleton::get_meta(binop)->precedence;
 }
-std::string BinOpsSingleton::get_unary_pre(const std::string& binop){
+std::string BinOpsSingleton::get_unary_pre(const std::string& binop) {
     return BinOpsSingleton::get_meta(binop)->unary_pre;
 }
 
