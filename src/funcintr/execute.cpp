@@ -2,6 +2,8 @@
 #include <s3dg/funcintr/execute.h>
 #include <iostream>
 #include <cassert>
+#include <cmath>
+#include <spdlog/spdlog.h>
 
 namespace s3dg {
 namespace execute {
@@ -12,6 +14,22 @@ Result Result::clone() const {
 
 ResultPtr Result::empty_result() {
     return std::make_unique<Result>();
+}
+
+ResultPtr Result::plus(ResultPtr left, ResultPtr right){
+    return std::make_unique<Result>(left->ret + right->ret);
+}
+ResultPtr Result::minus(ResultPtr left, ResultPtr right){
+    return std::make_unique<Result>(left->ret - right->ret);
+}
+ResultPtr Result::mul(ResultPtr left, ResultPtr right){
+    return std::make_unique<Result>(left->ret*right->ret);
+}
+ResultPtr Result::div(ResultPtr left, ResultPtr right){
+    return std::make_unique<Result>(left->ret / right->ret);
+}
+ResultPtr Result::pow(ResultPtr left, ResultPtr right){
+    return std::make_unique<Result>(std::pow(left->ret, right->ret));
 }
 
 void ExecuteState::set_variable(const std::string& name, ResultPtr val) {
@@ -102,14 +120,14 @@ ResultPtr LangFunctions::print(ExecuteStatePtr state, std::vector<ast::ASTExprPt
 }
 
 void ExecuteState::debug() {
-    std::cout<<"Execute State:\n";
-    std::cout<<"\tVariables:\n";
+    spdlog::debug("Execute State:");
+    spdlog::debug("\tVariables:");
     for(auto it = VariableLookup.begin(); it != VariableLookup.end(); ++it) {
-        std::cout<<"\t\t- "<<it->first<<": "<<it->second->ret<<"\n";
+        spdlog::debug("\t\t- {}: {}", it->first, it->second->ret);
     }
-    std::cout<<"\tFunctions:\n";
+    spdlog::debug("\tFunctions:");
     for(auto it = FunctionLookup.begin(); it != FunctionLookup.end(); ++it) {
-        std::cout<<"\t\t- "<<it->first;//<<"(";
+        // std::cout<<"\t\t- "<<it->first;//<<"(";
         // auto expr = std::move(it->second);
         // const auto& param_names = expr->param_names;
         // size_t size = param_names.size();
@@ -122,9 +140,9 @@ void ExecuteState::debug() {
         // it->second = std::move(expr);
         // std::cout<<")\n";
         // TODO: make work without sigfault
-        std::cout<<'\n';
+        // std::cout<<'\n';
+        spdlog::debug("\t\t- {}", it->first);
     }
-    std::cout<<std::endl;
 }
 
 }

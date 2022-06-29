@@ -2,6 +2,8 @@
 #include <map>
 #include <memory>
 #include <functional>
+#include <vector>
+#include <cmath>
 
 namespace s3dg{
 
@@ -24,6 +26,12 @@ public:
     Result clone() const;
 
     static ResultPtr empty_result();
+
+    static ResultPtr plus(ResultPtr left, ResultPtr right);
+    static ResultPtr minus(ResultPtr left, ResultPtr right);
+    static ResultPtr mul(ResultPtr left, ResultPtr right);
+    static ResultPtr div(ResultPtr left, ResultPtr right);
+    static ResultPtr pow(ResultPtr left, ResultPtr right);
 };
 
 class ExecuteState;

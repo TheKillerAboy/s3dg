@@ -49,6 +49,18 @@ TEST_CASE( "execute_function print", "[execute]" ) {
         REQUIRE(out == "2, 3\n");
     }
 
+    SECTION("print mul"){
+        std::stringstream ss(std::string("define f(x) = x*2\nprint f(2) f(3)"));
+        auto lexer_queue = s3dg::lexer::lexer(ss);
+        auto ast = s3dg::parser::parse_top_level(lexer_queue);
+        auto state = std::make_shared<ExecuteState>();
+        ast->execute(state);
+
+        auto out = strCout.str();
+        strCout.flush();
+        REQUIRE(out == "4, 6\n");
+    }
+
     // restore cout
     std::cout.rdbuf( oldCoutStreamBuf );
 }
