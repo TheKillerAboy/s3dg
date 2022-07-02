@@ -89,8 +89,10 @@ clean: clean.s3dg
 	@cd lib/spdlog && make clean
 	@cd lib/Catch2/build && make clean
 
+FORMATTED_FILES = $(SRC) $(TEST_SRC) $(INC)
+
 format:
-	@astyle $(SRC) $(TEST_SRC) $(INC) \
+	@astyle $(FORMATTED_FILES) \
 	--style=google \
 	--indent=spaces=4 \
 	--indent-classes \
@@ -113,4 +115,5 @@ format:
 	--convert-tabs \
 	--max-code-length=200 \
 	--break-after-logical \
-	--lineend=linux
+	--lineend=linux \
+	--formatted
