@@ -46,9 +46,6 @@ main: $(OBJ)
 src/%.o: src/%.cpp 
 	$(CC) -o $@ -c $< $(CFLAGS)
 
-include/%.o: include/%.hpp 
-	$(CC) -o $@ -c $< $(CFLAGS)
-
 
 # Testing
 
