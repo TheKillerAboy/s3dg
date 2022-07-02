@@ -17,8 +17,10 @@ ifeq ($(UNAME_S), Linux)
 	LDFLAGS += -ldl -lpthread -lGL
 endif
 
-SRC  = $(wildcard src/*.cpp) $(wildcard src/**/*.cpp)
-OBJ  = $(SRC:.cpp=.o)
+INC_HPP = $(wildcard include/*.hpp) $(wildcard include/**/*.hpp) $(wildcard include/**/**/*.hpp)
+INC  = $(wildcard include/*.h) $(wildcard include/**/*.h) $(wildcard include/**/**/*.h) $(INC_HPP)
+SRC  = $(wildcard src/*.cpp) $(wildcard src/**/*.cpp) $(wildcard src/**/**/*.cpp)
+OBJ = $(SRC:.cpp=.o)
 LIB = $(filter-out src/main.o, $(OBJ))
 
 BIN = bin
@@ -44,8 +46,9 @@ main: $(OBJ)
 src/%.o: src/%.cpp 
 	$(CC) -o $@ -c $< $(CFLAGS)
 
-format:
-	astyle $(SRC)
+include/%.o: include/%.hpp 
+	$(CC) -o $@ -c $< $(CFLAGS)
+
 
 # Testing
 
@@ -60,22 +63,26 @@ catch2_lib:
 	cd build &&\
 	make
 
-TEST_SRC  = $(wildcard tests/*.cpp) $(wildcard tests/**/*.cpp)
+TEST_SRC  = $(wildcard tests/*.cpp) $(wildcard tests/**/*.cpp)  $(wildcard tests/**/**/*.cpp)
 TEST_OBJ  = $(TEST_SRC:.cpp=.o)
 
 tests/%.o: tests/%.cpp
 	$(CC) -o $@ -c $< $(CFLAGS) $(CATCH2_INC)
 
 test_main: $(TEST_OBJ)
-	$(CC) -o $(BIN)/test_execute_point $^ $(LDFLAGS) $(LIB) $(CATCH2_LIB)
+	$(CC) -o $(BIN)/test_execute_point $^ $(LIB) $(CATCH2_LIB) $(LDFLAGS)
 
 test: export SPDLOG_LEVEL = debug
 test: all catch2_lib test_main
 	$(BIN)/test_execute_point $(ARGS)
 
-clean.s3dg:
+clean.s3dg.tests:
+	@echo Cleaning Test Binaries ...
+	@rm -rf $(TEST_OBJ)
+
+clean.s3dg: clean.s3dg.tests
 	@echo Cleaning Binaries ...
-	@rm -rf $(BIN) $(OBJ) $(TEST_OBJ) $(LIB) $(SRC:=.orig)
+	@rm -rf $(BIN) $(OBJ) $(TEST_OBJ) $(LIB)
 	@rm -rf build
 
 clean: clean.s3dg
@@ -84,3 +91,29 @@ clean: clean.s3dg
 	@cd lib/glew && make clean
 	@cd lib/spdlog && make clean
 	@cd lib/Catch2/build && make clean
+
+format:
+	@astyle $(SRC) $(TEST_SRC) $(INC) \
+	--style=google \
+	--indent=spaces=4 \
+	--indent-classes \
+	--indent-switches \
+	--indent-cases \
+	--indent-preproc-block \
+	--indent-preproc-define \
+	--indent-col1-comments \
+	--indent-namespaces \
+	--min-conditional-indent=0 \
+	--max-instatement-indent=120 \
+	--break-blocks \
+	--pad-oper \
+	--pad-header \
+	--unpad-paren \
+	--delete-empty-lines \
+	--align-pointer=type \
+	--align-reference=type \
+	--add-brackets \
+	--convert-tabs \
+	--max-code-length=200 \
+	--break-after-logical \
+	--lineend=linux
