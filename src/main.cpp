@@ -8,6 +8,7 @@
 #include <s3dg/render/opengl/vertexbufferlayout.h>
 #include <s3dg/render/opengl/indexbuffer.h>
 #include <s3dg/render/opengl/shader.h>
+#include <s3dg/render/opengl/renderer.h>
 #include <s3dg/math/vec.h>
 
 int main(void) {
@@ -53,16 +54,14 @@ int main(void) {
     s3dg::render::opengl::Shader shader("res/shaders/basic.shader");
     s3dg::math::Vec4f color({0.1f, 0.8f, 0.2f, 1});
     float inc = 0.05f;
+    s3dg::render::opengl::Renderer renderer;
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
-        va.bind();
-        ib.bind();
         shader.bind();
         shader.set_uniform("u_Color", color);
-        color.log();
 
         if (color[0] > 1.0f) {
             inc = -0.05f;
@@ -71,7 +70,7 @@ int main(void) {
         }
 
         color[0] += inc;
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
+        renderer.draw(va, ib, shader);
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
         /* Poll for and process events */
