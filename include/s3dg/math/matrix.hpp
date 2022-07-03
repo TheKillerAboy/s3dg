@@ -10,6 +10,9 @@ namespace s3dg {
         class Matrix {
           private:
             std::array<T, r_size* c_size> data;
+            inline size_t pos_to_ind(size_t r, size_t c) const {
+                return r * c_size + c;
+            }
           public:
             Matrix();
             Matrix(std::array<T, r_size* c_size> data): data(std::move(data)) {}
@@ -20,18 +23,38 @@ namespace s3dg {
             template<size_t oc_size>
             Matrix<r_size, oc_size, T> operator * (const Matrix<c_size, oc_size, T>& other) const;
 
-            inline T get(const size_t& r, const size_t& c) const {
-                return data[r * c_size + c];
+            inline T& get() {
+                return data;
             }
+
             inline T get(const size_t& i) const {
                 return data[i];
             }
+
+            inline T get(const size_t& r, const size_t& c) const {
+                return get(pos_to_ind(r, c));
+            }
+
             inline T operator [](const std::pair<size_t, size_t>& index) const {
                 return get(index.first, index.second);
             }
             inline T operator [](const size_t& i) const {
                 return get(i);
             }
+
+            inline void set(const size_t& r, const size_t& c, const T& value) const {
+                data[pos_to_ind(r, c)] = value;
+            }
+            inline void set(const size_t& i, const T& value) const {
+                data[i] = value;
+            }
+            inline T& operator [](const std::pair<size_t, size_t>& index) {
+                return data[pos_to_ind(index.first, index.second)];
+            }
+            inline T& operator [](const size_t& i) {
+                return data[i];
+            }
+
             inline void log() const;
         };
 

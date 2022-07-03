@@ -5,16 +5,7 @@ namespace s3dg {
     namespace math {
 
         template<size_t size, typename T>
-        class Vec: public Matrix<1, size, T> {
-          public:
-            inline T get(const size_t& i) const {
-                return get(0, i);
-            }
-            inline T operator [](const size_t& index) const {
-                return get(index);
-            }
-        };
-
+        using Vec = Matrix<1, size, T>;
 
         template<typename T>
         using Vec2 = Vec<2, T>;

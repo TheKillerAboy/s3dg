@@ -1,5 +1,6 @@
 #pragma once
 #include <s3dg/render/opengl/utils.h>
+#include <s3dg/math/matrix.hpp>
 
 namespace s3dg{
 namespace render{
